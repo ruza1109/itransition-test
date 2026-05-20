@@ -14,6 +14,6 @@ class HandleDiscontinuedItem
             $context->productDto->discontinuedAt = Carbon::now();
         }
 
-        return $context;
+        return $next($context);
     }
 }

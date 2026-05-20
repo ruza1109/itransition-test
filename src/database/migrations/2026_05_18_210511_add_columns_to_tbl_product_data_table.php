@@ -22,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('tbl_product_data', function (Blueprint $table) {
+        Schema::table('tblProductData', function (Blueprint $table) {
             $table->dropColumn('dcmCostInGbp');
             $table->dropColumn('intStock');
         });

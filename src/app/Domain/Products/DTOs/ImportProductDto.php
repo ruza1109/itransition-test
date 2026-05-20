@@ -24,7 +24,7 @@ class ImportProductDto
             'strProductDesc' => $this->productDescription,
             'intStock' => $this->stock,
             'dcmCostInGbp' => $this->cost,
-            'dmtDiscontinued' => $this->discontinuedAt
+            'dtmDiscontinued' => $this->discontinuedAt
         ];
     }
 }
