@@ -29,51 +29,15 @@ class ProductsCsvImport extends Command
         $tracker = $this->productsHandler->handle($this->argument('file'), $this->option('test'));
         $this->info('Processed: '. $tracker->getProcessed());
         $this->info('Succeeded: '. $tracker->getSucceeded());
-        $this->info('Failed: '. count($tracker->getFailed()));
-        $this->info('Skipped: '. count($tracker->getSkipped()));
-        return;
+        $this->error('Failed: '. count($tracker->getFailed()));
+        foreach ($tracker->getFailed() as $error) {
+            $this->error($error['productCode'] . ' - ' . $error['reason']);
+        }
 
-        $rows = SimpleExcelReader::create($this->argument('file'))->getRows();
+        $this->warn('Skipped: '. count($tracker->getSkipped()));
 
-        $rows->each(function (array $row) {
-            $sanitizedRow = $this->sanitizeRow($row);
-
-            // Using max validation rule per database fields definition
-            $validator = Validator::make($sanitizedRow, [
-                'productCode' => 'required|string|max:10|unique:tblProductData,strProductCode',
-                'productName' => 'required|string|max:50',
-                'productDescription' => 'required|string|max:255',
-                'stock' => 'required|integer',
-                'cost' => 'required|string',
-            ]);
-
-            // Handling failed rows
-            if ($validator->fails()) {
-                Log::warning(sprintf("Product %s failed to import with errors: %s", $sanitizedRow['productCode'], implode(', ', $validator->errors()->all())));
-                return;
-            }
-
-            // Business logic validation
-            $productDto = new ImportProductDto(
-                $sanitizedRow['productCode'],
-                $sanitizedRow['productName'],
-                $sanitizedRow['productDescription'],
-                $sanitizedRow['stock'],
-                $sanitizedRow['cost'],
-                $sanitizedRow['discontinued'],
-            );
-
-            if (!$this->isValid($productDto)) {
-                Log::warning(sprintf("Product %s failed for business rules.", $productDto->productCode));
-                return;
-            }
-
-            // Saving product
-            /** @var Product $product */
-            $product = Product::make($productDto->toArray());
-            $product->dtmDiscontinued = $productDto->isDiscontinued ? Carbon::now() : null;
-            $product->save();
-        });
-
+        foreach ($tracker->getSkipped() as $skip) {
+            $this->alert($skip['productCode'] . ' - ' . $skip['reason']);
+        }
     }
 }
