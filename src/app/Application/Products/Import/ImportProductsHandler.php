@@ -129,11 +129,19 @@ readonly class ImportProductsHandler
         ];
     }
 
+    /**
+     * Some basic cost sanitize
+     */
     private function sanitizeCost(?string $cost): ?string
     {
         if (empty($cost)) {
             return null;
         }
+
+        // Assuming commas act as thousands separators and removing them.
+        // In a real-world scenario (if we need to cover these cases) I would use NumberFormatter based on the locale
+        // to properly handle European formats where commas act as decimal separators.
+        $cost = str_replace(',', '', $cost);
 
         $cleanCost = preg_replace('/[^\d.]/', '', $cost);
 
